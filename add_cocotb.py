@@ -26,6 +26,10 @@ def debug_signals(dut, addr):
     print("Imm out:", dut.dp.o_imm.value)
     print("ALU out:", dut.o_ALU.value)
 
+def debug_shifter(dut):
+    print("Shift Result:", dut.dp.ALU.Shift_result.value)
+    print("Shift Result:", dut.dp.ALU.s.H.value)
+
 
 class r_encoding:
     def __init__(self, rd, rs1, rs2):
@@ -116,15 +120,16 @@ async def generic_rtype_test(dut, op, opstring):
     instr_obj.set_ideal_result()
     instr_obj.set_instruction(addr)
 
-    debug_instr(dut, addr)
+    #debug_instr(dut, addr)
 
     await FallingEdge(dut.clk)
-    debug_signals(dut, addr)
+    #debug_signals(dut, addr)
+    #debug_shifter(dut)
     instr_obj.check_ALU()
 
     await FallingEdge(dut.clk)
     instr_obj.check_rd()
-    debug_instr(dut, addr)
+    #debug_instr(dut, addr)
 
     dut.PC.Q.value = 4
 
@@ -136,7 +141,8 @@ async def add_test(dut):
 @cocotb.test()
 async def sub_test(dut):
     await generic_rtype_test(dut, lambda x,y: x-y, "sub")
-
+#shifts on the value in
+#register rs1 by the shift amount held in the lower 5 bits of register rs2
 @cocotb.test()
 async def sll_test(dut):
     await generic_rtype_test(dut, lambda x,y: x<<y, "sll")
