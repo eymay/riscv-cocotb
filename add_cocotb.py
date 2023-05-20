@@ -24,7 +24,7 @@ def debug_signals(dut, addr):
     print("CW", dut.cu.ctrl_wrd.value)
     print("CW4_2", dut.dp.CW4_2.value)
     print("Imm out:", dut.dp.o_imm.value)
-    print("ALU out:", int(dut.o_ALU.value))
+    print("ALU out:", dut.o_ALU.value)
 
 
 class r_encoding:
@@ -96,8 +96,7 @@ class r_type(r_encoding):
         assert self.rd.value == self.ideal_result, "Destination register has wrong result {} != {}".format(self.rd.value, self.ideal_result)
 
 
-@cocotb.test()
-async def add_test(dut):
+async def generic_rtype_test(dut, op, opstring):
     """Try accessing the design."""
     clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
@@ -111,19 +110,61 @@ async def add_test(dut):
     rs2 = 4
     addr = 4
 
-    instr_obj = r_type(dut, rd, rs1, rs2, lambda x,y: x+y, "add")
-    instr_obj.set_rs1(3)
-    instr_obj.set_rs2(5)
+    instr_obj = r_type(dut, rd, rs1, rs2, op, opstring)
+    instr_obj.set_rs1(5)
+    instr_obj.set_rs2(3)
     instr_obj.set_ideal_result()
     instr_obj.set_instruction(addr)
 
-    #debug_instr(dut, addr)
-    #debug_signals(dut, addr)
+    debug_instr(dut, addr)
 
     await FallingEdge(dut.clk)
+    debug_signals(dut, addr)
     instr_obj.check_ALU()
 
     await FallingEdge(dut.clk)
     instr_obj.check_rd()
+    debug_instr(dut, addr)
+
+    dut.PC.Q.value = 4
 
 
+@cocotb.test()
+async def add_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x+y, "add")
+
+@cocotb.test()
+async def sub_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x-y, "sub")
+
+@cocotb.test()
+async def sll_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x<<y, "sll")
+
+@cocotb.test()
+async def slt_test(dut):
+    await generic_rtype_test(dut, lambda x,y: 1 if x<y else 0, "slt")
+
+@cocotb.test()
+async def sltu_test(dut):
+    await generic_rtype_test(dut, lambda x,y: 1 if (x+2**32)<(y+2**32) else 0, "sltu")
+
+@cocotb.test()
+async def xor_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x^y, "xor")
+
+@cocotb.test()
+async def srl_test(dut):
+    await generic_rtype_test(dut, lambda x,y: (x % 0x100000000) >> y, "srl")
+
+@cocotb.test()
+async def sra_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x>>y, "sra")
+
+@cocotb.test()
+async def or_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x|y, "or")
+
+@cocotb.test()
+async def and_test(dut):
+    await generic_rtype_test(dut, lambda x,y: x&y, "and")
