@@ -31,7 +31,11 @@ def debug_shifter(dut):
     print("Shift Result:", dut.dp.ALU.s.H.value)
 
 
-
+def set_instruction(instr_obj,dut,addr):
+    instr = instr_obj.instr.get_instr_byte()
+    print("Instr emmitted is", instr[0], instr[1], instr[2], instr[3])
+    for i in range(4):
+        instr_obj.dut.instr_mem.imem[addr+i].value = int(instr[i], 16)
 
 class instruction():
     def __init__(self, op, place1, place2, place3): 
@@ -48,6 +52,47 @@ class instruction():
     def get_assembly(self):
         return self.assembly
 
+
+
+class mem_type:
+    def __init__(self, dut, rs1, offset, len,  op, opstring):
+        self.rs1_idx = rs1
+        self.rs1 = dut.dp.regfile.regs[rs1]
+        self.offset = offset
+        self.byte_addr = 0
+        self.transf_value = 0
+        self.mem = 0
+
+    def set_addr(self):
+        self.byte_addr = self.rs1.value + self.offset
+
+    def set_memref(self):
+        self.mem = self.dut.data_mem.data_mem[self.byte_addr]
+
+    def set_mem(self, val):
+        self.mem.value = val
+
+
+class load_type(mem_type):
+    def __init__(self, dut, rd, rs1, offset, len,  op, opstring):
+        super().__init__(dut, rs1, offset, len,  op, opstring)
+        self.rd_idx = rd
+        self.rd = dut.dp.regfile.regs[rd]
+        self.instr = instruction(
+                opstring, 
+                "x{}".format(rd),
+                "x{}".format(rs1),
+                offset)
+
+    def get_value(self):
+        self.transf_value = self.mem.value
+
+    def check_rd(self):
+        assert self.rd.value == self.transf_value , "Loaded value not correct {}!={}".format(self.rd.value, self.transf_value)
+
+
+
+        
 class alu_type:
     """Class that does computation, R and I type instrs"""
     def __init__(self, dut, rd, rs1,  op, opstring):
@@ -76,11 +121,7 @@ class alu_type:
     def set_ideal_result(self):
         self.ideal_result = self.check_x0(self.rd_idx, self.gold())
 
-    def set_instruction(self,addr):
-        instr = self.instr.get_instr_byte()
-        print("Instr emmitted is", instr[0], instr[1], instr[2], instr[3])
-        for i in range(4):
-            self.dut.instr_mem.imem[addr+i].value = int(instr[i], 16)
+
 
     def gold(self):
         return self.op(self.ideal_operand1,self.ideal_operand2)
@@ -127,9 +168,7 @@ class alu_ri(alu_type):
         print("Immed Gen Select:", self.dut.immed_gen.select.value)
 
         
-
-
-async def generic_itype_test(dut, op, opstring, debug = False):
+async def initialize(dut):
     clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
     
@@ -137,6 +176,33 @@ async def generic_itype_test(dut, op, opstring, debug = False):
     await Timer(5, units="ns")
     dut.rst.value = 1
     await Timer(5, units="ns")
+
+async def generic_load_test(dut, len, opstring, debug = False):
+    await initialize(dut)
+    rd = 1
+    rs1 = 2
+    offset = 4
+    addr = 4
+
+    instr_obj = load_type(dut, rd, rs1, offset, op, opstring)
+    instr_obj.set_rs1(5)
+    instr_obj.set_memref()
+    set_instruction(instr_obj, dut, addr)
+
+    #debug_instr(dut, addr)
+
+    await FallingEdge(dut.clk)
+    if(debug):
+        debug_signals(dut, addr)
+    #debug_shifter(dut)
+    instr_obj.check_rd()
+
+    #debug_instr(dut, addr)
+
+    dut.PC.Q.value = 4
+
+async def generic_itype_test(dut, op, opstring, debug = False):
+    await initialize(dut)
     rd = 1
     rs1 = 2
     imm = 4
@@ -145,7 +211,7 @@ async def generic_itype_test(dut, op, opstring, debug = False):
     instr_obj = alu_ri(dut, rd, rs1, imm, op, opstring)
     instr_obj.set_rs1(5)
     instr_obj.set_ideal_result()
-    instr_obj.set_instruction(addr)
+    set_instruction(instr_obj, dut, addr)
 
     #debug_instr(dut, addr)
 
@@ -164,14 +230,8 @@ async def generic_itype_test(dut, op, opstring, debug = False):
     dut.PC.Q.value = 4
 
 async def generic_rtype_test(dut, op, opstring):
-    """Try accessing the design."""
-    clock = Clock(dut.clk, 10, units="ns")
-    cocotb.start_soon(clock.start())
-    
-    dut.rst.value = 0
-    await Timer(5, units="ns")
-    dut.rst.value = 1
-    await Timer(5, units="ns")
+    await initialize(dut)
+
     rd = 1
     rs1 = 2
     rs2 = 4
@@ -181,7 +241,8 @@ async def generic_rtype_test(dut, op, opstring):
     instr_obj.set_rs1(5)
     instr_obj.set_rs2(3)
     instr_obj.set_ideal_result()
-    instr_obj.set_instruction(addr)
+    set_instruction(instr_obj, dut, addr)
+
 
     #debug_instr(dut, addr)
 
@@ -195,6 +256,10 @@ async def generic_rtype_test(dut, op, opstring):
     #debug_instr(dut, addr)
 
     dut.PC.Q.value = 4
+
+@cocotb.test()
+async def load_test(dut):
+    await generic_load_test(dut, len=32 ,opstring="load", debug=False)
 
 @cocotb.test()
 async def addi_test(dut):
@@ -224,7 +289,7 @@ async def andi_test(dut):
 #register rs1 by the shift amount held in the lower 5 bits of register rs2
 @cocotb.test()
 async def slli_test(dut):
-    await generic_rtype_test(dut, lambda x,y: x<<y, "slli")
+    await generic_itype_test(dut, lambda x,y: x<<y, "slli")
 
 @cocotb.test()
 async def srli_test(dut):
