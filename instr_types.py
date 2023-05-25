@@ -1,5 +1,26 @@
 from as2hex import *
 
+class Arch:
+    def __init__(self, dut):
+        self.dut = dut
+        self.module_paths = {}
+        self.modules = {regfile: "regfile",
+                        alu: "ALU",
+                        data_mem: "data_mem",
+                        pc: "PC"}
+        
+
+    def get_module (self, module_name):
+        if module_name in self.modules:
+            return self.module_paths[module_name]
+        else:
+            path = self.dut.__get_sub_handle_by_name(module_name)
+            print(path)
+            self.module_paths[module_name] = path
+            return path
+
+
+
 class Instruction():
     def __init__(self, op, place1, place2, place3): 
         #place1, place2, place3 are the places where the operands are in the instruction
