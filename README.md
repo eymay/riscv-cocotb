@@ -31,7 +31,7 @@ async def generic_itype_test(dut, op, opstring, debug = False):
 ```
 Now, this generic immediate test can be invoked as the following:
 
-```pyton
+```python
 @cocotb.test()
 async def addi_test(dut):
     await generic_itype_test(dut, lambda x,y: x+y, "addi")
