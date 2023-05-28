@@ -63,5 +63,14 @@ TOPLEVEL = YOUR_TOP_MODULE
 ```
 Additional settings can be done in Makefile such as choosing a different simulation backend. Refer to Cocotb for additional configuration.
 
+## Roadmap
+|Goal|Progress|
+|----|----|
+|R type Instrs|:heavy_check_mark:|
+|I type Instrs|:heavy_check_mark:|
+|Architecture Abstraction|:heavy_check_mark:|
+|Load Store Instrs|:heavy_multiplication_x:|
+|Timing Abstractions (for Pipeline)|:heavy_multiplication_x:|
+
 ## Development
-This project is under development, any contribution is welcome. To see an working and integrated version of this project to a RISC-V core please check [here](https://github.com/Eymay/RV32I_Core).
+This project is under development, any contribution is welcome. To see a working and integrated version of this project with a RISC-V core please check [here](https://github.com/Eymay/RV32I_Core).
