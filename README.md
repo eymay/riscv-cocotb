@@ -34,7 +34,7 @@ Now, this generic immediate test can be invoked as the following:
 ```pyton
 @cocotb.test()
 async def addi_test(dut):
-    await generic_itype_test(dut, lambda x,y: x+y, "addi", debug=False)
+    await generic_itype_test(dut, lambda x,y: x+y, "addi")
 
 @cocotb.test()
 async def slti_test(dut):
@@ -46,3 +46,19 @@ async def xori_test(dut):
 ```
 
 The advantage of this approach is that every instruction can be developed in isolation and tracing errors in programs can be easier.
+
+## Getting Started
+`riscv-cocotb` currently uses llvm to get bytecode of assembly strings and cocotb as a dependency.
+Install llvm and cocotb on debian based distros:
+
+```shell
+sudo apt install llvm-14
+pip3 install cocotb
+```
+Configure your project by modifying the `Makefile`
+```Makefile
+VERILOG_SOURCES += YOUR_VERILOG_SRC/*.v
+
+TOPLEVEL = YOUR_TOP_MODULE
+```
+Additional settings can be done in Makefile such as choosing a different simulation backend. Refer to Cocotb for additional configuration.

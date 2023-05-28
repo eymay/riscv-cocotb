@@ -1,0 +1,5 @@
+*.fst
+__pycache__/*
+*.elf
+
+
