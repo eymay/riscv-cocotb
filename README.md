@@ -62,3 +62,6 @@ VERILOG_SOURCES += YOUR_VERILOG_SRC/*.v
 TOPLEVEL = YOUR_TOP_MODULE
 ```
 Additional settings can be done in Makefile such as choosing a different simulation backend. Refer to Cocotb for additional configuration.
+
+## Development
+This project is under development, any contribution is welcome. To see an working and integrated version of this project to a RISC-V core please check [here](https://github.com/Eymay/RV32I_Core).
