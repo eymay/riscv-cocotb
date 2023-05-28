@@ -1,29 +1,40 @@
 from as2hex import *
+from functools import lru_cache
 
 class Arch:
     module_paths = {}
     modules = {"regfile": "regfile",
-               "alu": "ALU",
+               "alu": "FU",
                "data_mem": "data_mem",
                "pc": "PC", 
-               "instr_mem": "instr_mem"}
+               "instr_mem": "instr_mem",
+               "immed_gen": "immed_gen"}
+    comb_modules = set()
+    seq_modules = set()
+
     def __init__(self, dut):
         self.dut = dut
-        
+
+    @lru_cache(maxsize=None)
     def recurse_handles(self, top, module):
-        print(top._sub_handles)
+        if top._name == module:
+            return top
+        top._discover_all()
         if module in top._sub_handles:
             return top._sub_handles[module]
         else:
             for handle in top._sub_handles.values():
                 if handle._type == "GPI_MODULE":
-                    return self.recurse_handles(handle, module)
-                print(handle._type)
+                    path = self.recurse_handles(handle, module)
+                    if path != None:
+                        return path
             return None
-                   
 
     def get_path(self, module_name):
         print("Module Name: ", module_name)
+        if module_name not in Arch.modules:
+            raise Exception("Input module not in module dict, please add your module")
+
         local_module = Arch.modules[module_name]
         if local_module == None:
             raise Exception("Not found in module list")
@@ -35,28 +46,64 @@ class Arch:
             print("Calculated Path: ", path)
             if path != None:
                 Arch.module_paths[local_module] = path
+            else:
+                raise Exception("Verilog module path not found")
             return path
     
+    @lru_cache(maxsize=None)
     def get_regs(self, module):
         parent = self.get_path(module)
         if parent == None:
             raise Exception("Verilog module path not found")
+        parent._discover_all()
         for elem in parent._sub_handles.values():
             if elem._type == "GPI_ARRAY":
+                return elem
+        #dirty fix for 1D arrays
+        for elem in parent._sub_handles.values():
+            if elem._type == "GPI_REGISTER":
                 return elem
 
     def get_mem(self, module):
         return self.get_regs(module)
 
+    def is_comb(self, module):
+        if module in Arch.comb_modules:
+            return True
+        elif module in Arch.seq_modules:
+            return False
+        else:
+            if module._type != "GPI_MODULE":
+                raise Exception("Only module type elements can be comb or seq")
+            module._discover_all()
+            if 'clk' not in module._sub_handles:
+                Arch.comb_modules.add(module)
+                return True
+            else:
+                Arch.seq_modules.add(module)
+                return False
+
+
+    @lru_cache(maxsize=None)
     def get_output(self, module):
         parent = self.get_path(module)
-        print(parent._sub_handles)
+        if parent == None:
+            raise Exception("Verilog module path not found")
+        parent._discover_all()
+        #print(parent._sub_handles)
+        #for elem in parent._sub_handles.values():
+        #    print(elem._type, elem._name)
 
-            #path = self.dut._sub_handles[local_module]
-            #module_paths[local_module] = path
+        #if self.is_comb(parent):
+        #It is assumed that if the module is combinational,
+        #it will have an output with reg type. 
+        #However, simple seq modules can also have single reg type signals which are output
+        max_len_reg = None
+        subdict = {k:v for (k,v) in parent._sub_handles.items() if v._type == "GPI_REGISTER"}
+        #Another heuristic is to assume the largest length of bits to be the output
+        # and not some internal reg used for computation
+        return max(subdict.values(), key=lambda x: len(x))
 
-        #return self.dut._sub_handles[local_module]
-        
 
 class Instruction():
     def __init__(self, op, place1, place2, place3): 
@@ -107,11 +154,12 @@ class Alu_type:
         return self.op(self.ideal_operand1,self.ideal_operand2)
 
     def check_ALU(self):
-        self.arch.get_output("alu")
-        #assert self.dut.dp.o_ALU.value == self.ideal_result, "ALU output not correct {} != {}".format(self.dut.dp.o_ALU.value, self.ideal_result)
+        out_ALU = self.arch.get_output("alu")
+        assert out_ALU.value == self.ideal_result, "ALU output not correct {} != {}".format(out_ALU.value, self.ideal_result)
 
     def check_rd(self):
         assert self.rd.value == self.ideal_result, "Destination register has wrong result {} != {}".format(self.rd.value, self.ideal_result)
+
 
 class Alu_rr(Alu_type):
     def __init__(self, dut, rd, rs1, rs2, op, opstring):
@@ -133,7 +181,8 @@ class Alu_rr(Alu_type):
 
 class Alu_ri(Alu_type):
     def __init__(self, dut, rd, rs1, imm, op, opstring):
-        super().__init__(dut, rd, rs1, op, opstring)
+        arch = Arch(dut)
+        super().__init__(arch, rd, rs1, op, opstring)
         self.set_operand2(imm)
         self.imm = self.ideal_operand2
         self.instr = Instruction(
@@ -143,9 +192,9 @@ class Alu_ri(Alu_type):
                 str(imm))
 
     def check_imm(self):
-        assert self.dut.dp.o_imm.value == self.imm, "Immediate produced is not correct {} != {}".format(self.dut.dp.o_imm.value, self.imm)
+        out_imm = self.arch.get_output("immed_gen")
+        assert out_imm.value == self.imm, "Immediate produced is not correct {} != {}".format(out_imm.value, self.imm)
 
     def debug_imm(self):
-        print("Imm:", self.dut.dp.o_imm.value)
-        print("Immed Gen Field:", self.dut.immed_gen.field.value)
-        print("Immed Gen Select:", self.dut.immed_gen.select.value)
+        out_imm = self.arch.get_output("immed_gen")
+        print("Imm:", out_imm.value)
