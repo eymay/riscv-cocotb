@@ -4,45 +4,23 @@ RISC-V unit testing for instructions with Python based on Cocotb. This project p
 
 The final goal is to support all instructions in RV32I base instruction set. Currently all Register-Register and Register-Immediate instructions are supported.
 
-The generic tests can be used for single cycle cores with simple timings. 
+Tests can be generated for your architecture with minimal configuration. Enter the instantiation names of your modules as such:
 ```python
-async def generic_itype_test(dut, op, opstring, debug = False):
-    await initialize(dut)
-    rd = 1
-    rs1 = 2
-    imm = 4
-    addr = 4
+from unit_test_instrs import generate_tests_for_type, RTypeInstr, ITypeInstr
+from instr_types import Arch
 
-    instr_obj = Alu_ri(dut, rd, rs1, imm, op, opstring)
-    instr_obj.set_rs1(5)
-    instr_obj.set_ideal_result()
-    set_instruction(instr_obj, addr)
+simple_core_arch = Arch(custom_modules={
+    "regfile": "regfile",
+    "alu": "funit",
+    "instr_mem": "text_memory",
+    "pc": "program_counter",
+}, custom_nets={
+    "clk": "clock",
+    "rst": "reset",
+    })
 
-    await FallingEdge(dut.clk)
-
-    instr_obj.check_imm()
-    instr_obj.check_ALU()
-
-    await FallingEdge(dut.clk)
-    instr_obj.check_rd()
-
-    pc = instr_obj.arch.get_regs("pc")
-    pc.value = 4
-```
-Now, this generic immediate test can be invoked as the following:
-
-```python
-@cocotb.test()
-async def addi_test(dut):
-    await generic_itype_test(dut, lambda x,y: x+y, "addi")
-
-@cocotb.test()
-async def slti_test(dut):
-    await generic_itype_test(dut, lambda x,y: 1 if x<y else 0, "slti")
-
-@cocotb.test()
-async def xori_test(dut):
-    await generic_itype_test(dut, lambda x,y: x^y, "xori")
+generate_tests_for_type(RTypeInstr, simple_core_arch)
+generate_tests_for_type(ITypeInstr, simple_core_arch)
 ```
 
 The advantage of this approach is that every instruction can be developed in isolation and tracing errors in programs can be easier.
@@ -52,10 +30,12 @@ The advantage of this approach is that every instruction can be developed in iso
 Install llvm and cocotb on debian based distros:
 
 ```shell
-sudo apt install llvm-14
-pip3 install cocotb
+sudo apt install llvm
+pip install -r requirements.txt
 ```
-Configure your project by modifying the `Makefile`
+
+#TODO Cocotb runners
+~~Configure your project by modifying the `Makefile`~~
 ```Makefile
 VERILOG_SOURCES += YOUR_VERILOG_SRC/*.v
 
