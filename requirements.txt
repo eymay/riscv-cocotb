@@ -1,0 +1,5 @@
+riscv-assembler
+cocotb>=1.5
+cocotb-test>=0.2
+pytest
+coverage
