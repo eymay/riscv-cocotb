@@ -1,4 +1,4 @@
-# riscv-cocotb
+# riscv_cocotb
 
 RISC-V unit testing for instructions with Python based on Cocotb. This project provides an easy to use API to customize tests for your RISC-V core. The tests are aimed to monitor the inner signals of modules to provide rich error information to hardware developers.
 
@@ -26,7 +26,7 @@ generate_tests_for_type(ITypeInstr, simple_core_arch)
 The advantage of this approach is that every instruction can be developed in isolation and tracing errors in programs can be easier.
 
 ## Getting Started
-`riscv-cocotb` currently uses llvm to get bytecode of assembly strings and cocotb as a dependency.
+`riscv_cocotb` currently uses llvm to get bytecode of assembly strings and cocotb as a dependency.
 Install llvm and cocotb on debian based distros:
 
 ```shell
