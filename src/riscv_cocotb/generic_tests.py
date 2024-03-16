@@ -7,7 +7,7 @@ from riscv_cocotb.instr_types import Arch, Instruction, Alu_type, Alu_rr, Alu_ri
 
 
 def set_instruction(dut, arch, instr_obj, addr):
-    instr = instr_obj.instr.get_instr_byte()
+    instr = instr_obj.get_instr_byte()
     print("Instr emmitted is", instr[0], instr[1], instr[2], instr[3])
     instr_mem = arch.get_mem(dut, "instr_mem")
     # print("Instr Mem: ", instr_mem)
@@ -37,14 +37,14 @@ async def generic_itype_test(dut, arch, op, opstring, debug=True):
     instr_obj = Alu_ri(dut, arch, rd, rs1, imm, op, opstring)
     instr_obj.set_rs1(5)
     instr_obj.set_ideal_result()
-    set_instruction(dut, arch, instr_obj, addr)
+    set_instruction(dut, arch, instr_obj.instr, addr)
 
     if debug:
-        debug_instr(dut, arch, instr_obj, addr)
+        debug_instr(dut, arch, instr_obj.instr, addr)
 
     await FallingEdge(dut.clk)
     if debug:
-        debug_instr(dut, arch, instr_obj, addr)
+        debug_instr(dut, arch, instr_obj.instr, addr)
         instr_obj.debug_imm(dut, arch)
 
     instr_obj.check_imm(dut, arch)
