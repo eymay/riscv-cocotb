@@ -17,9 +17,9 @@ class Arch:
         self.seq_modules = set()
         self.net_paths = {}
         self.nets = {
-                "clk": "clk",
-                "rst": "rst",
-                }
+            "clk": "clk",
+            "rst": "rst",
+        }
 
         if custom_modules:
             self.modules.update(custom_modules)
@@ -62,7 +62,7 @@ class Arch:
             return path
 
     @lru_cache(maxsize=None)
-    def find_entity_path(self, top, name, entity_type='module'):
+    def find_entity_path(self, top, name, entity_type="module"):
         """
         Recursively searches for an entity (module, net, or register) within the given top module.
 
@@ -73,7 +73,7 @@ class Arch:
         """
         top._discover_all()
         for handle in top._sub_handles.values():
-            if entity_type == 'all' or handle._type == self._gpi_type_map(entity_type):
+            if entity_type == "all" or handle._type == self._gpi_type_map(entity_type):
                 if handle._name == name:
                     return handle
             # Recurse if it's a module, regardless of the entity type, because entities might be nested within
@@ -88,12 +88,12 @@ class Arch:
         Maps a high-level entity type to the corresponding GPI type.
         """
         return {
-            'module': 'GPI_MODULE',
-            'net': 'GPI_NET',
-            'register': 'GPI_REGISTER'
+            "module": "GPI_MODULE",
+            "net": "GPI_NET",
+            "register": "GPI_REGISTER",
         }.get(entity_type, None)
 
-    def get_entity(self, dut, name, entity_type='module'):
+    def get_entity(self, dut, name, entity_type="module"):
         """
         Retrieves an entity (module, net, or register) from the DUT based on its name and type.
 
@@ -108,7 +108,9 @@ class Arch:
                 self.net_paths[name] = entity
                 return entity
             else:
-                raise Exception(f"{entity_type.capitalize()} named '{name}' not found in the DUT.")
+                raise Exception(
+                    f"{entity_type.capitalize()} named '{name}' not found in the DUT."
+                )
         return self.net_paths[name]
 
     @lru_cache(maxsize=None)
@@ -167,10 +169,11 @@ class Arch:
         return max(subdict.values(), key=lambda x: len(x))
 
     def get_clock(self, dut):
-        return self.get_entity(dut, self.nets["clk"], entity_type='net')
+        return self.get_entity(dut, self.nets["clk"], entity_type="net")
 
     def get_reset(self, dut):
-        return self.get_entity(dut, self.nets["rst"], entity_type='net')
+        return self.get_entity(dut, self.nets["rst"], entity_type="net")
+
 
 class Instruction:
     def __init__(self, op, place1, place2, place3):
@@ -269,15 +272,16 @@ class Alu_ri(Alu_type):
     def check_imm(self, dut, arch):
         out_imm = arch.get_output(dut, "immed_gen").value.integer
         expected_imm = self.imm
-        
-        if self.instr.op in ['slli', 'srli', 'srai']:
+
+        if self.instr.op in ["slli", "srli", "srai"]:
             # For shift instructions, only the least significant 5 bits are relevant
             mask = 0x1F
             out_imm &= mask
             expected_imm &= mask
-        
-        assert out_imm == expected_imm, f"Immediate produced is not correct {out_imm.value} != {self.imm}"
 
+        assert (
+            out_imm == expected_imm
+        ), f"Immediate produced is not correct {out_imm.value} != {self.imm}"
 
     def debug_imm(self, dut, arch):
         out_imm = arch.get_output(dut, "immed_gen")
