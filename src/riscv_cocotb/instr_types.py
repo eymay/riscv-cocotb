@@ -192,6 +192,13 @@ class Instruction:
     def get_instr_byte(self):
         return self.instr_byte
 
+    def get_instr_hex(self):
+        if isinstance(self.instr_byte, list):
+            hex_bytes = [f"{int(byte, 16):02x}" for byte in self.instr_byte[::-1]]
+            expected_hex = "0x" + "".join(hex_bytes)
+            return expected_hex
+        print("Instruction not returned as list")
+
     def get_assembly(self):
         return self.assembly
 
