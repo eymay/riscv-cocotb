@@ -1,5 +1,5 @@
 *.fst
-__pycache__/*
+__pycache__/
 *.elf
-
-
+sim_build/
+*.xml
