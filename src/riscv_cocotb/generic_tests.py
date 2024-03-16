@@ -38,6 +38,8 @@ async def generic_itype_test(dut, arch, op, opstring, debug=True):
     instr_obj.set_rs1(5)
     instr_obj.set_ideal_result()
     set_instruction(dut, arch, instr_obj.instr, addr)
+    # Allow simulation to read the new set instruction
+    await cocotb.triggers.Timer(1, units="ns")
 
     if debug:
         debug_instr(dut, arch, instr_obj.instr, addr)
