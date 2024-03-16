@@ -2,8 +2,8 @@ import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import FallingEdge, Timer
 
-from debug_utils import debug_instr
-from instr_types import Arch, Instruction, Alu_type, Alu_rr, Alu_ri
+from riscv_cocotb.debug_utils import debug_instr
+from riscv_cocotb.instr_types import Arch, Instruction, Alu_type, Alu_rr, Alu_ri
 
 
 def set_instruction(dut, arch, instr_obj, addr):

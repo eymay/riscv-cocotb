@@ -1,4 +1,4 @@
-from instr_types import Arch
+from riscv_cocotb.instr_types import Arch
 
 def debug_instr(dut, arch, instr_obj, addr):
     instr = instr_obj.instr.get_instr_byte()

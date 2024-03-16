@@ -1,4 +1,4 @@
-from as2hex import as2hex
+from riscv_cocotb.as2hex import as2hex
 from functools import lru_cache
 
 

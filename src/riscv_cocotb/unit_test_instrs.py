@@ -3,12 +3,12 @@ import inspect
 import random
 import sys
 
-import debug_utils as dbg
-from generic_tests import initialize, set_instruction
-from generic_tests import generic_itype_test, generic_rtype_test
+import riscv_cocotb.debug_utils as dbg
+from riscv_cocotb.generic_tests import initialize, set_instruction
+from riscv_cocotb.generic_tests import generic_itype_test, generic_rtype_test
 
 
-from instr_types import Instruction
+from riscv_cocotb.instr_types import Instruction
 
 from cocotb.triggers import FallingEdge, Timer
 
