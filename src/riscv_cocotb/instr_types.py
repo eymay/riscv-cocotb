@@ -4,7 +4,7 @@ from functools import lru_cache
 
 
 class Arch:
-    def __init__(self, custom_modules=None, custom_nets=None):
+    def __init__(self, custom_modules=None, custom_nets=None, littleEndian=True):
         self.module_paths = {}
         self.modules = {
             "regfile": "regfile",
@@ -21,6 +21,7 @@ class Arch:
             "clk": "clk",
             "rst": "rst",
         }
+        self.littleEndian=littleEndian
 
         if custom_modules:
             self.modules.update(custom_modules)
@@ -177,7 +178,7 @@ class Arch:
 
 
 class Instruction:
-    def __init__(self, op, place1, place2, place3):
+    def __init__(self, op, place1, place2, place3, arch_little_endian=True):
         # place1, place2, place3 are the places where the operands are in the instruction
         self.op = op
         self.place1 = place1
@@ -191,8 +192,9 @@ class Instruction:
             + place2
             + ((", " + place3) if place3 != "" else "")
         )
-        self.instr_byte, self.little_endian = as2hex(self.assembly, op)
-        self.set_little_endian() # Default endiannes 
+        self.instr_byte, self.hex_little_endian = as2hex(self.assembly, op)
+        if arch_little_endian and not self.hex_little_endian:
+            self.set_little_endian() # Default endiannes 
 
     def set_little_endian(self):
         if not self.little_endian:
@@ -262,7 +264,7 @@ class Alu_rr(Alu_type):
         super().__init__(dut, arch, rd, rs1, op, opstring)
         self.rs2_idx = rs2
         self.rs2 = reg[rs2]
-        self.instr = Instruction(opstring, f"x{rd}", f"x{rs1}", f"x{rs2}")
+        self.instr = Instruction(opstring, f"x{rd}", f"x{rs1}", f"x{rs2}", arch.littleEndian)
 
     def set_rs2(self, value):
         self.set_operand2(value)
@@ -274,7 +276,7 @@ class Alu_ri(Alu_type):
         super().__init__(dut, arch, rd, rs1, op, opstring)
         self.set_operand2(imm)
         self.imm = self.ideal_operand2
-        self.instr = Instruction(opstring, f"x{rd}", f"x{rs1}", str(imm))
+        self.instr = Instruction(opstring, f"x{rd}", f"x{rs1}", str(imm), arch.littleEndian)
 
     def check_imm(self, dut, arch):
         out_imm = arch.get_output(dut, "immed_gen").value.integer
