@@ -11,7 +11,7 @@ def set_instruction(dut, arch, instr_obj, addr):
     print("Instr emmitted is", instr[0], instr[1], instr[2], instr[3])
     instr_mem = arch.get_mem(dut, "instr_mem")
     print("Instr Mem: ", instr_mem)
-    print("Instr Mem 0: ", instr_mem[0])
+    print("Instr Mem 0: ", instr_mem[0].value)
     mem_width = len(instr_mem[0].value.binstr)
     print("Memory width:", mem_width)
 
@@ -54,7 +54,7 @@ async def generic_itype_test(dut, arch, op, opstring, debug=True):
     instr_class = Alu_ri(dut, arch, rd, rs1, imm, op, opstring)
     instr_class.set_rs1(5)
     instr_class.set_ideal_result()
-    instr_obj = instr_obj.instr
+    instr_obj = instr_class.instr
     set_instruction(dut, arch, instr_obj, addr)
     # Allow simulation to read the new set instruction
     await cocotb.triggers.Timer(1, units="ns")
@@ -97,7 +97,7 @@ async def generic_rtype_test(dut, arch, op, opstring):
     await FallingEdge(dut.clk)
     # await FallingEdge(dut.clk)
     debug_instr(dut, arch, instr_obj, addr)
-    # print("Instr Mem: ", dut.instr_mem.imem[addr].value)
+
     instr_class.check_ALU(dut, arch)
 
     await FallingEdge(dut.clk)
