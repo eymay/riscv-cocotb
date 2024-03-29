@@ -29,11 +29,16 @@ async def instr_mem1_test(dut):
     dut.addr.value = addr
     await cocotb.triggers.Timer(1, units='ns')  # Allow time for the simulation to update
     o_instr_mem = arch.get_output(dut, "instr_mem")
-    o_instr_mem_int = int(o_instr_mem.value)
-    o_instr_mem_hex = f"0x{o_instr_mem_int:08x}"
-    assert o_instr_mem_hex == instr_obj.get_instr_hex(), "Instruction memory is not set correctly"
+    o_instr_mem_hex = f"0x{o_instr_mem.value.integer:0>8x}"
+    
+    expected_hex = instr_obj.get_instr_hex()  # Get formatted hex string of the instruction
+    
+    print(f"Simulated instr_mem: {o_instr_mem_hex}")
+    print(f"Expected instr_hex: {expected_hex}")
+    
+    assert o_instr_mem_hex == expected_hex, "Instruction memory is not set correctly"
 
-@cocotb.test(expect_fail=True)
+@cocotb.test()
 async def instr_mem2_test(dut):
     rd = 1
     rs1 = 2
@@ -46,12 +51,17 @@ async def instr_mem2_test(dut):
     dut.addr.value = addr
     await cocotb.triggers.Timer(1, units='ns')  # Allow time for the simulation to update
     o_instr_mem = arch.get_output(dut, "instr_mem")
-    o_instr_mem_int = int(o_instr_mem.value)
-    o_instr_mem_hex = f"0x{o_instr_mem_int:08x}"
-    assert o_instr_mem_hex == instr_obj.get_instr_hex(), "Instruction memory is not set correctly"
+    o_instr_mem_hex = f"0x{o_instr_mem.value.integer:0>8x}"
+    
+    expected_hex = instr_obj.get_instr_hex()  # Get formatted hex string of the instruction
+    
+    print(f"Simulated instr_mem: {o_instr_mem_hex}")
+    print(f"Expected instr_hex: {expected_hex}")
+    
+    assert o_instr_mem_hex == expected_hex, "Instruction memory is not set correctly"
     
 
-@cocotb.test(expect_fail=True)
+@cocotb.test()
 async def instr_mem4_test(dut):
     rd = 1
     rs1 = 2
@@ -64,6 +74,12 @@ async def instr_mem4_test(dut):
     dut.addr.value = addr
     await cocotb.triggers.Timer(1, units='ns')  # Allow time for the simulation to update
     o_instr_mem = arch.get_output(dut, "instr_mem")
-    o_instr_mem_int = int(o_instr_mem.value)
-    o_instr_mem_hex = f"0x{o_instr_mem_int:08x}"
-    assert o_instr_mem_hex == instr_obj.get_instr_hex(), "Instruction memory is not set correctly"
+    o_instr_mem_hex = f"0x{o_instr_mem.value.integer:0>8x}"
+    
+    expected_hex = instr_obj.get_instr_hex()  # Get formatted hex string of the instruction
+    
+    print(f"Simulated instr_mem: {o_instr_mem_hex}")
+    print(f"Expected instr_hex: {expected_hex}")
+    
+    assert o_instr_mem_hex == expected_hex, "Instruction memory is not set correctly"
+

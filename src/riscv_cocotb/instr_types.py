@@ -1,3 +1,4 @@
+from cocotb.binary import BinaryValue
 from riscv_cocotb.as2hex import as2hex
 from functools import lru_cache
 
@@ -190,16 +191,22 @@ class Instruction:
             + place2
             + ((", " + place3) if place3 != "" else "")
         )
-        self.instr_byte = as2hex(self.assembly, op)
+        self.instr_byte, self.little_endian = as2hex(self.assembly, op)
+        self.set_little_endian() # Default endiannes 
+
+    def set_little_endian(self):
+        if not self.little_endian:
+            self.instr_byte = self.instr_byte[::-1]
+            self.little_endian = True
 
     def get_instr_byte(self):
         return self.instr_byte
 
     def get_instr_hex(self):
         if isinstance(self.instr_byte, list):
-            hex_bytes = [f"{int(byte, 16):02x}" for byte in self.instr_byte[::-1]]
-            expected_hex = "0x" + "".join(hex_bytes)
-            return expected_hex
+            hex_str = ''.join([f"{int(byte, 16):02x}" for byte in reversed(self.instr_byte)])
+            formatted_hex = f"0x{hex_str:0>8}"
+            return formatted_hex
         print("Instruction not returned as list")
 
     def get_assembly(self):
@@ -281,7 +288,7 @@ class Alu_ri(Alu_type):
 
         assert (
             out_imm == expected_imm
-        ), f"Immediate produced is not correct {out_imm.value} != {self.imm}"
+        ), f"Immediate produced is not correct {out_imm} != {self.imm}"
 
     def debug_imm(self, dut, arch):
         out_imm = arch.get_output(dut, "immed_gen")

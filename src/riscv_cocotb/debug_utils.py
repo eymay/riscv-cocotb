@@ -1,7 +1,7 @@
 from riscv_cocotb.instr_types import Arch
 
 def debug_instr(dut, arch, instr_obj, addr):
-    instr = instr_obj.instr.get_instr_byte()
+    instr = instr_obj.get_instr_byte()
     print("Instr emmitted is", instr[0], instr[1], instr[2], instr[3])
 
     o_PC = arch.get_output(dut, "pc")

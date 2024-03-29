@@ -15,7 +15,7 @@ def llvm_mc_available():
 def as2hex_llvm_mc(asm, inst):
     result = subprocess.run([dis_script, asm, inst], stdout=subprocess.PIPE)
     #returns list of byte strings 
-    return result.stdout.decode('utf-8').split()
+    return result.stdout.decode('utf-8').split(), False # not little_endian, MSB at first index of list
 
 def as2hex_fallback(asm):
     # Instantiate AssemblyConverter with hex_mode enabled
@@ -23,7 +23,7 @@ def as2hex_fallback(asm):
     result = convert.convert(asm)
     
     # Assuming result is in the desired format; adjust if necessary
-    return result
+    return result, False #TODO verify this 
 
 def as2hex(asm, inst):
     if llvm_mc_available():
