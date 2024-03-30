@@ -197,9 +197,9 @@ class Instruction:
             self.set_little_endian() # Default endiannes 
 
     def set_little_endian(self):
-        if not self.little_endian:
+        if not self.hex_little_endian:
             self.instr_byte = self.instr_byte[::-1]
-            self.little_endian = True
+            self.hex_little_endian = True
 
     def get_instr_byte(self):
         return self.instr_byte
