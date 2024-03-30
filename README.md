@@ -6,8 +6,8 @@ The final goal is to support all instructions in RV32I base instruction set. Cur
 
 Tests can be generated for your architecture with minimal configuration. Enter the instantiation names of your modules as such:
 ```python
-from unit_test_instrs import generate_tests_for_type, RTypeInstr, ITypeInstr
-from instr_types import Arch
+from riscv_cocotb.unit_test_instrs import generate_tests_for_type, RTypeInstr, ITypeInstr
+from riscv_cocotb.instr_types import Arch
 
 simple_core_arch = Arch(custom_modules={
     "regfile": "regfile",
@@ -26,22 +26,49 @@ generate_tests_for_type(ITypeInstr, simple_core_arch)
 The advantage of this approach is that every instruction can be developed in isolation and tracing errors in programs can be easier.
 
 ## Getting Started
-`riscv_cocotb` currently uses llvm to get bytecode of assembly strings and cocotb as a dependency.
-Install llvm and cocotb on debian based distros:
+
+### Installing Dependencies
+`riscv_cocotb` currently uses `llvm-mc` to get bytecode of assembly strings and cocotb as a dependency.
+Install LLVM:
 
 ```shell
 sudo apt install llvm
+```
+
+The default simulation runner is Icarus Verilog. To install iverilog:
+
+```shell
+sudo apt install iverilog
+```
+Check out the installed version of `iverilog`, it should be higher than 12.0:
+
+```shell
+iverilog -v
+Icarus Verilog version 12.0 (stable) ()
+```
+If it is version 11.0 or lower, please install `iverilog`  [from source](https://github.com/steveicarus/iverilog?tab=readme-ov-file#compiling-from-github):
+```
+git clone https://github.com/steveicarus/iverilog
+cd iverilog
+sh autoconf.sh
+./configure
+make
+sudo make install
+```
+After making sure `llvm-mc --version` and `iverilog -v` commands work, continue on installing Python packages:
+```shell
+cd riscv-cocotb
+python3 -m venv .venv
+. .venv/bin/activate
 pip install -r requirements.txt
 ```
+### Running the Tests
 
-#TODO Cocotb runners
-~~Configure your project by modifying the `Makefile`~~
-```Makefile
-VERILOG_SOURCES += YOUR_VERILOG_SRC/*.v
-
-TOPLEVEL = YOUR_TOP_MODULE
+To run the test suite:
+```shell
+cd riscv-cocotb/tests
+make
 ```
-Additional settings can be done in Makefile such as choosing a different simulation backend. Refer to Cocotb for additional configuration.
 
 ## Roadmap
 |Goal|Progress|
@@ -51,6 +78,3 @@ Additional settings can be done in Makefile such as choosing a different simulat
 |Architecture Abstraction|:heavy_check_mark:|
 |Load Store Instrs|:heavy_multiplication_x:|
 |Timing Abstractions (for Pipeline)|:heavy_multiplication_x:|
-
-## Development
-This project is under development, any contribution is welcome. To see a working and integrated version of this project with a RISC-V core please check [here](https://github.com/Eymay/RV32I_Core).
