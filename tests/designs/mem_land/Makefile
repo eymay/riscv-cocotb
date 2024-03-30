@@ -6,7 +6,7 @@ TOPLEVEL_LANG ?= verilog
 
 PWD=$(shell pwd)
 
-RISCV_COCOTB?=$(PWD)/../..
+RISCV_COCOTB?=$(PWD)/../../..
 VERILOG_SOURCES += $(RISCV_COCOTB)/tests/designs/mem_land/*.v
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
