@@ -57,11 +57,26 @@ sudo make install
 ```
 After making sure `llvm-mc --version` and `iverilog -v` commands work, continue on installing Python packages:
 ```shell
+git clone https://github.com/eymay/riscv-cocotb.git
 cd riscv-cocotb
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 ```
+Note that the command `. .venv/bin/activate` should be run before every session.
+
+### Install `riscv-cocotb`
+To install `riscv-cocotb` as a package in local:
+```shell
+cd riscv-cocotb
+pip install .
+```
+Note that this install should be repeated after any code changes to this package. Development mode can be enabled while observing code changes:
+```shell
+pip install -e .
+```
+There is no need to call `install` again in development mode.
+
 ### Running the Tests
 
 To run the test suite:
